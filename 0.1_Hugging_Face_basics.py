@@ -21,11 +21,16 @@
 # COMMAND ----------
 
 # DBTITLE 1,Install ctransformers for CPU inference
-%pip install ctransformers==0.2.26
+# MAGIC %pip install ctransformers==0.2.26 llama_index==0.8.54
 
 # COMMAND ----------
 
 dbutils.library.restartPython()
+
+# COMMAND ----------
+
+
+
 # COMMAND ----------
 
 # MAGIC %md
@@ -47,7 +52,7 @@ dbutils.library.restartPython()
 
 #for classroom
 #dbfs_tmp_cache = '/dbfs/bootcamp_data/hf_cache/'
-run_mode = 'cpu'
+run_mode = 'gpu' # make a widget here 
 
 # COMMAND ----------
 
@@ -74,7 +79,7 @@ run_mode = 'cpu'
 # MAGIC But To make llms fast enough to run on CPU we need to leverage a couple of other opensource components.\
 # MAGIC These are not standard huggingface components so work a bit differently.\
 # MAGIC - [ggml](https://github.com/ggerganov/ggml) Which is a specialised tensor library for fast inference.\ 
-# MAGIC 
+# MAGIC
 # MAGIC - [ctransformer](https://github.com/marella/ctransformers) A wrapper for ggml to give it a python API 
 # MAGIC
 # MAGIC The CPU version loads differently and we essentially get the model object straight away without having to define the tokenizer.
@@ -218,4 +223,7 @@ string_printer(output, run_mode)
 # MAGIC `Base` is the common root for the models. The others are built on top of this.\
 # MAGIC `Instruct` is built to follow instructions as per the [following paper](https://crfm.stanford.edu/2023/03/13/alpaca.html) \
 # MAGIC At a high level we could say that OpenAI ChatGPT would more be a hybrid of Instruct and Chat rather than Base
+
 # COMMAND ----------
+
+

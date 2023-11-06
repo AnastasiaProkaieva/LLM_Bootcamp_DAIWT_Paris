@@ -68,9 +68,10 @@ class QueryEndpoint:
       response = requests.post(headers=self.header, url=self.uri, json=dataset)
 
       return response.json()
+
 # COMMAND ----------
 
-def load_model(run_mode: str, dbfs_cache_dir: str, serving_uri :str='llama_2_13b'):
+def load_model(run_mode: str, dbfs_cache_dir: str, serving_uri :str='llama_2_13b', model_name:str = "llama_2_gpu"):
     """
     run_mode (str) - can be gpu or cpu
     """
@@ -99,7 +100,7 @@ def load_model(run_mode: str, dbfs_cache_dir: str, serving_uri :str='llama_2_13b
         #model_id = 'VMware/open-llama-7b-v2-open-instruct'
         #model_revision = 'b8fbe09571a71603ab517fe897a1281005060b62'
 
-        cached_model = f'{bootcamp_dbfs_model_folder}/llama_2_gpu'
+        cached_model = f'{bootcamp_dbfs_model_folder}/{model_name}'
         tokenizer = AutoTokenizer.from_pretrained(cached_model, cache_dir=dbfs_cache_dir)
         
         model_config = AutoConfig.from_pretrained(cached_model)
@@ -148,6 +149,20 @@ def string_printer(out_obj, run_mode):
 
 # COMMAND ----------
 
+def select_proper_set(prompt, run_mode, max_new_tokens=100, max_tokens=100):
+  
+  if run_mode == 'gpu':
+    output = pipe([prompt], max_new_tokens=max_new_tokens)
+    str_output = string_printer(output[0], run_mode)
+    
+  if run_mode == "serving":
+    output = pipe([prompt], max_tokens=max_tokens)
+    str_output = string_printer(output, run_mode)
+  
+  return print(str_output)
+
+# COMMAND ----------
+
 # currently the langchain integration is broken
 from typing import Any, List, Mapping, Optional
 
@@ -193,7 +208,7 @@ class ServingEndpointLLM(LLM):
             response = requests.post(headers=header, url=self.endpoint_url, json=dataset)
 
             try:
-        
+                print(response.json())
                 return response.json()['predictions'][0]['candidates'][0]['text']
             
             except KeyError:

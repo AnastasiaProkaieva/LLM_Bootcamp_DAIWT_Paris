@@ -8,15 +8,16 @@
 # COMMAND ----------
 
 # DBTITLE 1,Library Setup
-# MAGIC #%pip install ctransformers==0.2.26
-# MAGIC %pip install mlflow==2.8.0 llama_index==0.8.54
+#%pip install ctransformers==0.2.26
+%pip install mlflow==2.8.0 llama_index==0.8.54
+
 # COMMAND ----------
 
 dbutils.library.restartPython()
 
 # COMMAND ----------
 
-run_mode = 'serving' # or gpu or cpu
+run_mode = 'gpu' # or gpu or cpu or serving
 
 # COMMAND ----------
 
@@ -44,16 +45,7 @@ pipe = load_model(run_mode, dbfs_tmp_cache, 'zephyr_7b')
 # COMMAND ----------
 
 prompt = "The sky is"
-output = pipe([prompt], max_tokens=100)
-str_output = string_printer(output, run_mode)
-print(str_output)
-
-# COMMAND ----------
-
-prompt = "Knock Knock"
-output = pipe([prompt], max_tokens=100)
-str_output = string_printer(output, run_mode)
-print(str_output)
+select_proper_set(prompt, run_mode)
 
 # COMMAND ----------
 
@@ -61,10 +53,7 @@ prompt = """
     Knock Knock
     Who's there?
     """
-
-output = pipe([prompt], max_tokens=250)
-str_output = string_printer(output, run_mode)
-print(str_output)
+select_proper_set(prompt, run_mode, max_new_tokens=250, max_tokens=100)
 
 # COMMAND ----------
 
@@ -81,9 +70,7 @@ prompt = """
     Sentiment:
 """
 
-output = pipe([prompt], max_tokens=100)
-str_output = string_printer(output, run_mode)
-print(str_output)
+select_proper_set(prompt, run_mode, max_new_tokens=250, max_tokens=100)
 
 # COMMAND ----------
 
@@ -110,9 +97,13 @@ Sentiment:
 <|assistant|> 
 """
 
-output = pipe([prompt], max_tokens=100)
-str_output = string_printer(output, run_mode)
-print(str_output)
+# COMMAND ----------
+
+select_proper_set(prompt, run_mode, max_new_tokens=100, max_tokens=100)
+
+# COMMAND ----------
+
+select_proper_set(zephyr_prompt, run_mode, max_new_tokens=100, max_tokens=100)
 
 # COMMAND ----------
 
@@ -142,9 +133,14 @@ Answer:
 <|assistant|>
 """
 
-output = pipe([prompt], max_tokens=100)
-str_output = string_printer(output, run_mode)
-print(str_output)
+
+# COMMAND ----------
+
+select_proper_set(prompt, run_mode, max_new_tokens=100, max_tokens=100)
+
+# COMMAND ----------
+
+select_proper_set(zephyr_prompt, run_mode, max_new_tokens=100, max_tokens=100)
 
 # COMMAND ----------
 
@@ -184,9 +180,14 @@ What account would you recommend a small business?[/INST]
 <|assistant|>
 """
 
-output = pipe([prompt], max_tokens=100)
-str_output = string_printer(output, run_mode)
-print(str_output)
+
+# COMMAND ----------
+
+select_proper_set(prompt, run_mode, max_new_tokens=100, max_tokens=100)
+
+# COMMAND ----------
+
+select_proper_set(zephyr_prompt, run_mode, max_new_tokens=100, max_tokens=100)
 
 # COMMAND ----------
 
@@ -219,9 +220,14 @@ What account would you recommend a bob the builder?
 <|assistant|>
 """
 
-output = pipe([prompt], max_tokens=100)
-str_output = string_printer(output, run_mode)
-print(str_output)
+
+# COMMAND ----------
+
+select_proper_set(prompt, run_mode, max_new_tokens=100, max_tokens=100)
+
+# COMMAND ----------
+
+select_proper_set(zephyr_prompt, run_mode, max_new_tokens=100, max_tokens=100)
 
 # COMMAND ----------
 
@@ -276,11 +282,13 @@ Based on the above provide the answer to the following question.
 <|assistant|>
 """
 
+# COMMAND ----------
 
-output = pipe([prompt], max_tokens=100)
-str_output = string_printer(output, run_mode)
-print(str_output)
+select_proper_set(prompt, run_mode, max_new_tokens=250, max_tokens=100)
 
+# COMMAND ----------
+
+select_proper_set(zephyr_prompt, run_mode, max_new_tokens=250, max_tokens=100)
 
 # COMMAND ----------
 
@@ -309,9 +317,14 @@ Question:
 {user_question}[/INST]
 """
 
-output = pipe([prompt], max_tokens=250)
-str_output = string_printer(output, run_mode)
-print(str_output)
+
+# COMMAND ----------
+
+select_proper_set(prompt, run_mode, max_new_tokens=250, max_tokens=100)
+
+# COMMAND ----------
+
+select_proper_set(zephyr_prompt, run_mode, max_new_tokens=250, max_tokens=100)
 
 # COMMAND ----------
 
@@ -357,10 +370,13 @@ A tech unicorn deserves a special VC account
 <|assistant|>
 """
 
-output = pipe([prompt], max_tokens=250)
-str_output = string_printer(output, run_mode)
-print(str_output)
+# COMMAND ----------
 
+select_proper_set(prompt, run_mode, max_new_tokens=250, max_tokens=100)
+
+# COMMAND ----------
+
+select_proper_set(zephyr_prompt, run_mode, max_new_tokens=250, max_tokens=100)
 
 # COMMAND ----------
 
@@ -385,10 +401,14 @@ zehpyr_prompt = f"""<|system|>
 <|assistant|>
 """
 
-output = pipe([prompt], max_tokens=500)
-str_output = string_printer(output, run_mode)
-print(str_output)
 
+# COMMAND ----------
+
+select_proper_set(prompt, run_mode, max_new_tokens=500, max_tokens=100)
+
+# COMMAND ----------
+
+select_proper_set(zephyr_prompt, run_mode, max_new_tokens=500, max_tokens=100)
 
 # COMMAND ----------
 
@@ -453,9 +473,14 @@ zephyr_prompt = f"""<|system|>
 <|assistant|>
 """
 
-output = pipe([prompt], max_tokens=250)
-str_output = string_printer(output, run_mode)
-print(str_output)
+
+# COMMAND ----------
+
+select_proper_set(prompt, run_mode, max_new_tokens=250, max_tokens=100)
+
+# COMMAND ----------
+
+select_proper_set(zephyr_prompt, run_mode, max_new_tokens=250, max_tokens=100)
 
 # COMMAND ----------
 
@@ -486,24 +511,37 @@ Provide an answer to the following:
 <|assistant|>
 """
 
-output = pipe([prompt], max_tokens=250)
-str_output = string_printer(output, run_mode)
-print(str_output)
+
+# COMMAND ----------
+
+select_proper_set(prompt, run_mode, max_new_tokens=250, max_tokens=100)
+
+# COMMAND ----------
+
+select_proper_set(zephyr_prompt, run_mode, max_new_tokens=250, max_tokens=100)
+
+# COMMAND ----------
+
+
 
 # COMMAND ----------
 
 # MAGIC %md 
-# MAGIC # Managing Prompts w MLFlow
+# MAGIC ## Managing Prompts with MLFlow
 # MAGIC As we can see logging prompts can be hard!\
-# MAGIC You might have already ended up with spreadsheets of prompts and replies!\
-# MAGIC Whilst MLflow support for LLMs is still an area of improvement we have made great strides already\
+# MAGIC You might have already ended up with spreadsheets of prompts and replies! <br>
+# MAGIC Whilst MLflow support for LLMs is still an area of improvement we have made great strides already.
 # MAGIC
-# MAGIC TODO Update links
-# MAGIC See: https://www.databricks.com/blog/2023/04/18/introducing-mlflow-23-enhanced-native-llm-support-and-new-features.html
-# MAGIC See: https://www.databricks.com/blog/announcing-mlflow-24-llmops-tools-robust-model-evaluation
+# MAGIC Links:
+# MAGIC - [introducing-mlflow-23-enhanced-native-llm-support-and-new-features](https://www.databricks.com/blog/2023/04/18/introducing-mlflow-23-enhanced-native-llm-support-and-new-features.html)
+# MAGIC - [announcing-mlflow-24-llmops-tools-robust-model-evaluation](https://www.databricks.com/blog/announcing-mlflow-24-llmops-tools-robust-model-evaluation)
 # MAGIC
 # MAGIC We will quickly review the llm tracking API from the 2.3 addition\
-# MAGIC For full descriptions see: https://mlflow.org/docs/latest/llm-tracking.html
+# MAGIC For full descriptions see [here](https://mlflow.org/docs/latest/llm-tracking.html) 
+
+# COMMAND ----------
+
+## SUper Slow needs VLLM 
 
 # COMMAND ----------
 
@@ -517,8 +555,8 @@ mlflow.set_experiment(mlflow_dir)
 
 # DBTITLE 1,Evaluation Prompts
 common_test_prompts = [
-    "What is the capital of Korea?",
-    "Name the top 10 kpop groups in the world",
+    "What is the capital of France?",
+    "Name the top 10 French singers of all time",
     "Write me a infomercial script on why kimchi is good?",
     "What best way to make an omlet?",
     "What would you do if you had 1M dollars?"
@@ -531,14 +569,21 @@ testing_pandas_frame = pd.DataFrame(
 # COMMAND ----------
 
 # starting with mlflow 2.8 we don't have to use evaluate with a pyfunc function is okay
-def eval_pipe(inputs):
+def eval_pipe(inputs, max_new_tokens=200, run_mode= "gpu"):
     answers = []
     for index, row in inputs.iterrows():
-        result = pipe([row.item()])
-        answer = result['predictions'][0]['candidates'][0]['text']
+        result = pipe([row.item()],max_new_tokens=max_new_tokens)
+        answer = string_printer(result[0], run_mode)
+        #answer = result['predictions'][0]['candidates'][0]['text'] # for serving option TO DO 
         answers.append(answer)
     
     return answers
+
+# COMMAND ----------
+
+pipe = load_model(run_mode, dbfs_tmp_cache, 'llama_2_7b')
+answers_example = eval_pipe(testing_pandas_frame, max_new_tokens=200, run_mode= "gpu")
+
 # COMMAND ----------
 
 with mlflow.start_run(run_name='llama_2_7b'):
@@ -546,17 +591,24 @@ with mlflow.start_run(run_name='llama_2_7b'):
     results = mlflow.evaluate(eval_pipe, 
                           data=testing_pandas_frame, 
                           model_type='text')
+
+# COMMAND ----------
+
+with mlflow.start_run(run_name='zephyr_7b'):
+    pipe = load_model(run_mode, dbfs_tmp_cache, 'zephyr_7b')
+    results = mlflow.evaluate(eval_pipe, 
+                          data=testing_pandas_frame, 
+                          model_type='text')
     
-with mlflow.start_run(run_name='llama_2_13b'):
-    pipe = load_model(run_mode, dbfs_tmp_cache, 'llama_2_13b')
+
+# COMMAND ----------
+
+with mlflow.start_run(run_name='mistral_7b'):
+    pipe = load_model(run_mode, dbfs_tmp_cache, 'mistral_7b')
     results = mlflow.evaluate(eval_pipe, 
                           data=testing_pandas_frame, 
                           model_type='text')
 
-with mlflow.start_run(run_name='vicuna_13b'):
-    pipe = load_model(run_mode, dbfs_tmp_cache, 'vicuna_13b')
-    results = mlflow.evaluate(eval_pipe, 
-                          data=testing_pandas_frame, 
-                          model_type='text')
+# COMMAND ----------
 
 

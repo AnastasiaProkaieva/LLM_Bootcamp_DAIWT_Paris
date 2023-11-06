@@ -6,7 +6,7 @@
 
 # COMMAND ----------
 
-%pip install llama_index==0.8.54
+# MAGIC %pip install llama_index==0.8.54 mlflow==2.8.0
 
 # COMMAND ----------
 
@@ -14,7 +14,7 @@ dbutils.library.restartPython()
 
 # COMMAND ----------
 
-%run ./utils
+# MAGIC %run ./utils
 
 # COMMAND ----------
 
@@ -24,7 +24,7 @@ from mlflow import gateway
 
 gateway.set_gateway_uri(gateway_uri="databricks")
 
-mosaic_embeddings_route_name = "mosaicml-instructor-xl-embeddings"
+mosaic_embeddings_route_name = "mosaicml-instructor-xl-embeddings-bootcamp"
 
 try:
     route = gateway.get_route(mosaic_embeddings_route_name)
@@ -38,14 +38,14 @@ except:
             "name": "instructor-xl",
             "provider": "mosaicml",
             "mosaicml_config": {
-                "mosaicml_api_key": dbutils.secrets.get(scope="bootcamp_training", key="mosaic_ml_api_key")
+                "mosaicml_api_key": dbutils.secrets.get(scope="bootcamp_paris", key="mosaic_ml_serving_key")
             }
         }
     ))
 
 # COMMAND ----------
 
-mosaic_route_name = "mosaicml-llama2-70b-chat"
+mosaic_route_name = "mosaicml-llama2-70b-chat-bootcamp"
 
 try:
     route = gateway.get_route(mosaic_route_name)
@@ -59,7 +59,7 @@ except:
             "name": "llama2-70b-chat",
             "provider": "mosaicml",
             "mosaicml_config": {
-                "mosaicml_api_key": dbutils.secrets.get(scope="bootcamp_training", key="mosaic_ml_api_key")
+                "mosaicml_api_key": dbutils.secrets.get(scope="bootcamp_paris", key="mosaic_ml_serving_key")
             }
         }
     ))
@@ -74,7 +74,7 @@ from langchain.chat_models import ChatMLflowAIGateway
 from langchain.prompts import PromptTemplate, ChatPromptTemplate
 from langchain.chains import LLMChain
 
-mosaic_route_name = "mosaicml-llama2-70b-chat"
+mosaic_route_name = "mosaicml-llama2-70b-chat-bootcamp"
 
 my_gateway = ChatMLflowAIGateway(
     gateway_uri="databricks",
@@ -89,13 +89,18 @@ my_gateway = ChatMLflowAIGateway(
 llm_chain = LLMChain(
     llm=my_gateway,
     prompt=ChatPromptTemplate.from_messages([
-        ("system", "You are an unhelpful bot called Bossy that speaks in Korean"),
+        ("system", "You are an unhelpful bot called Frenchy that speaks French"),
         ("human", "{user_input}")
     ])
 )
+
 # COMMAND ----------
 
-llm_chain.run(user_input="안녕하세요!")
+llm_chain.run(user_input="Bonjour, ca va ?! Dit moi plus qui est tu")
+
+# COMMAND ----------
+
+mlflow.__version__
 
 # COMMAND ----------
 
@@ -109,3 +114,5 @@ with mlflow.start_run(run_name='initial_chain'):
                                                        'llama_index==0.8.54'])
 
 # COMMAND ----------
+
+

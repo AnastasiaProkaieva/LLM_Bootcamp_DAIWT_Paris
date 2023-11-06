@@ -18,6 +18,7 @@ import os
 import requests
 
 # COMMAND ----------
+
 # DBTITLE 1,Setup dbfs folder paths
 # MAGIC %run ./utils
 
@@ -25,7 +26,7 @@ import requests
 
 # DBTITLE 1,Config Params
 # We will setup a folder to store the files
-user_agent = "me-me-me"
+user_agent = "paris_ap"
 
 reset_home = False 
 
@@ -117,9 +118,10 @@ os.environ['HF_HOME'] = dbfs_hf_home
 
 # COMMAND ----------
 
-%sh export TRANSFORMERS_CACHE=$dbfs_transformers_home
+# MAGIC %sh export TRANSFORMERS_CACHE=$dbfs_transformers_home
 
 # COMMAND ----------
+
 # this is needed for llama 2 downloading
 # You need to create a huggingface account
 # The follow the instructions here: https://huggingface.co/docs/hub/security-tokens#:~:text=To%20create%20an%20access%20token,you're%20ready%20to%20go!
@@ -133,7 +135,9 @@ import huggingface_hub
 # huggingface_hub.notebook_login()
 
 # use this if you have a hf key saved in secrets
-huggingface_key = dbutils.secrets.get(scope='bootcamp_training', key='hf-key')
+#huggingface_key = dbutils.secrets.get(scope='bootcamp_training', key='hf-key')
+huggingface_key = dbutils.secrets.get(scope='bootcamp_paris', key='HF_TOKEN')
+# for serving teh key is serving_key
 huggingface_hub.login(token=huggingface_key)
 
 # COMMAND ----------
@@ -144,6 +148,7 @@ from huggingface_hub import hf_hub_download, list_repo_files
 repo_list = {'llama_2_gpu': 'meta-llama/Llama-2-7b-chat-hf',
              'llama_2_cpu': 'TheBloke/Llama-2-7B-chat-GGUF',
              'llama_2_awq': 'TheBloke/Llama-2-7B-AWQ',
+             'llama_2_7b' : 'meta-llama/Llama-2-7b',
              'llama_2_13b': 'meta-llama/Llama-2-13b-chat-hf',
              'llama_2_13b_awq': 'TheBloke/Llama-2-13B-chat-AWQ',
              'vicuna_1.5_13b': 'lmsys/vicuna-13b-v1.5',
@@ -171,3 +176,7 @@ for lib_name in repo_list.keys():
                 local_dir=os.path.join(dbfs_downloads_home, lib_name),
                 local_dir_use_symlinks=False,
             )
+
+# COMMAND ----------
+
+
