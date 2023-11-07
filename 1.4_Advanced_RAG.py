@@ -16,7 +16,7 @@ dbutils.library.restartPython()
 # COMMAND ----------
 
 # DBTITLE 1,Setup Utils
-%run ./utils
+# MAGIC %run ./utils
 
 # COMMAND ----------
 
@@ -27,6 +27,138 @@ dbutils.library.restartPython()
 # MAGIC - VectorDB
 # MAGIC - Documents
 # MAGIC - Embeddings
+
+# COMMAND ----------
+
+# Embedding wrapper
+
+from typing import Any, Dict, List, Mapping, Optional, Tuple
+
+import requests
+
+from langchain.pydantic_v1 import BaseModel, Extra, root_validator
+from langchain.schema.embeddings import Embeddings
+from langchain.utils import get_from_dict_or_env
+
+
+class ModelServingEndpointEmbeddings(BaseModel, Embeddings):
+    """Databricks Model Serving embedding service.
+
+    To use, you should have the
+    environment variable ``DB_API_TOKEN`` set with your API token, or pass
+    it as a named parameter to the constructor.
+    """
+
+    endpoint_url: str = (
+        "https://e2-dogfood.staging.cloud.databricks.com/serving-endpoints/hf_embedding_bootcamp_endpoint/invocations"
+    )
+    """Endpoint URL to use."""
+    embed_instruction: str = "Represent the document for retrieval: "
+    """Instruction used to embed documents."""
+    query_instruction: str = (
+        "Represent the question for retrieving supporting documents: "
+    )
+    """Instruction used to embed the query."""
+    retry_sleep: float = 1.0
+    """How long to try sleeping for if a rate limit is encountered"""
+
+    db_api_token: Optional[str] = None
+
+    class Config:
+        """Configuration for this pydantic object."""
+        extra = Extra.forbid
+
+    @root_validator()
+    def validate_environment(cls, values: Dict) -> Dict:
+        """Validate that api key and python package exists in environment."""
+        db_api_token = get_from_dict_or_env(
+            values, "db_api_token", "DB_API_TOKEN"
+        )
+        values["db_api_token"] = db_api_token
+        return values
+
+    @property
+    def _identifying_params(self) -> Mapping[str, Any]:
+        """Get the identifying parameters."""
+        return {"endpoint_url": self.endpoint_url}
+
+    def _embed(
+        self, input: List[Tuple[str, str]], is_retry: bool = False
+    ) -> List[List[float]]:
+        #payload = {"input_strings": input}
+        payload = {
+            "dataframe_split": {
+                "data": [
+                    [
+                        input
+                    ]
+                ]
+            }
+        }
+
+        # HTTP headers for authorization
+        headers = {
+            "Authorization": f"Bearer {self.db_api_token}",
+            "Content-Type": "application/json",
+        }
+
+        # send request
+        try:
+            response = requests.post(url=self.endpoint_url, headers=headers, json=payload)
+        
+        except requests.exceptions.RequestException as e:
+            raise ValueError(f"Error raised by inference endpoint: {e}")
+
+        try:
+            if response.status_code == 429:
+                if not is_retry:
+                    import time
+                    time.sleep(self.retry_sleep)
+                    return self._embed(input, is_retry=True)
+                raise ValueError(
+                    f"Error raised by inference API: rate limit exceeded.\nResponse: "
+                    f"{response.text}"
+                )
+            
+            parsed_response = response.json()
+
+        except requests.exceptions.JSONDecodeError as e:
+            raise ValueError(
+                f"Error raised by inference API: {e}.\nResponse: {response.text}"
+            )
+        print("SHAPE PARSED RESPOSE", len(parsed_response))
+        return parsed_response
+
+    def embed_documents(self, texts: List[str]) -> List[List[float]]:
+        """Embed documents using a MosaicML deployed instructor embedding model.
+
+        Args:
+            texts: The list of texts to embed.
+
+        Returns:
+            List of embeddings, one for each text.
+        """
+        try:
+            print("INSIDE EMBED_DOCS")
+            embeddings = [self._embed(x)['predictions'][0] for x in texts]
+            
+        except KeyError:
+            print([self._embed(x) for x in texts])
+        print("SHAPE OF EMBEDDINGS", len(embeddings))
+        return embeddings
+
+    def embed_query(self, text: str) -> List[float]:
+        """Embed a query using a Databricks Model Serving embedding model.
+
+        Args:
+            text: The text to embed.
+
+        Returns:
+            Embeddings for the text.
+        """
+        embedding = self._embed(text)
+        print("BEFORE FINAL RETURN ", embedding)
+        return embedding['predictions']
 
 # COMMAND ----------
 
@@ -62,6 +194,7 @@ chroma_collection = chroma_client.get_or_create_collection("advanced_rag")
 
 vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
 storage_context = StorageContext.from_defaults(vector_store=vector_store)
+
 # COMMAND ----------
 
 # DBTITLE 1,Load Documents
@@ -76,6 +209,10 @@ documents = SimpleDirectoryReader(
     input_dir=dbfs_source_docs,
     file_extractor = {'*.pdf': unstruct_loader}
 ).load_data()
+
+# COMMAND ----------
+
+len(documents)
 
 # COMMAND ----------
 
@@ -101,10 +238,10 @@ browser_host = dbutils.notebook.entry_point.getDbutils().notebook().getContext()
 db_host = f"https://{browser_host}"
 db_token = dbutils.notebook.entry_point.getDbutils().notebook().getContext().apiToken().get()
 
-serving_uri = 'zephyr_7b'
+serving_uri = 'hf_inference_bootcamp_endpoint'
 serving_model_uri = f"{db_host}/serving-endpoints/{serving_uri}/invocations"
 
-embedding_uri = 'brian_embedding_endpoint'
+embedding_uri = 'hf_embedding_bootcamp_endpoint'
 embedding_model_uri = f"{db_host}/serving-endpoints/{embedding_uri}/invocations"
 
 llm_model = ServingEndpointLLM(endpoint_url=serving_model_uri, token=db_token)
@@ -132,15 +269,17 @@ set_global_service_context(service_context)
 from llama_index import VectorStoreIndex
 from langchain.vectorstores import Chroma
 
-index = VectorStoreIndex.from_documents(
-    documents, storage_context=storage_context
-)
+index = VectorStoreIndex.from_documents(documents)
 
 # Query Data from the persisted index
 query_engine = index.as_query_engine()
 response = query_engine.query("Tell me about the mT5 model")
 
-print(response.response)
+
+# COMMAND ----------
+
+response.response
+
 # COMMAND ----------
 
 # MAGIC %md
@@ -149,6 +288,7 @@ print(response.response)
 # MAGIC Examples include:
 # MAGIC - Memory
 # MAGIC - Agents
+
 # COMMAND ----------
 
 from llama_index.langchain_helpers.agents import IndexToolConfig, LlamaIndexTool
@@ -174,6 +314,7 @@ agent_executor = initialize_agent(
 )
 
 agent_executor.run(input="Tell me about mT5 model")
+
 # COMMAND ----------
 
 agent_executor.run(input="Tell me more!")
@@ -235,26 +376,13 @@ class AdvancedLangchainQABot(mlflow.pyfunc.PythonModel):
         
         class ModelServingEndpointEmbeddings(BaseModel, Embeddings):
             """Databricks Model Serving embedding service.
-
             To use, you should have the
             environment variable ``DB_API_TOKEN`` set with your API token, or pass
             it as a named parameter to the constructor.
-
-            Example:
-                .. code-block:: python
-
-                    from langchain.llms import MosaicMLInstructorEmbeddings
-                    endpoint_url = (
-                        "https://dbc-d0c4038e-c5a9.cloud.databricks.com/serving-endpoints/brian_embedding_endpoint/invocations"
-                    )
-                    mosaic_llm = MosaicMLInstructorEmbeddings(
-                        endpoint_url=endpoint_url,
-                        db_api_token="my-api-key"
-                    )
             """
 
             endpoint_url: str = (
-                "https://dbc-d0c4038e-c5a9.cloud.databricks.com/serving-endpoints/brian_embedding_endpoint/invocations"
+                "https://e2-dogfood.staging.cloud.databricks.com/serving-endpoints/hf_embedding_bootcamp_endpoint/invocations"
             )
             """Endpoint URL to use."""
             embed_instruction: str = "Represent the document for retrieval: "
@@ -290,6 +418,7 @@ class AdvancedLangchainQABot(mlflow.pyfunc.PythonModel):
                 self, input: List[Tuple[str, str]], is_retry: bool = False
             ) -> List[List[float]]:
                 #payload = {"input_strings": input}
+                print("INPUT", input)
                 payload = {
                     "dataframe_split": {
                         "data": [
@@ -308,7 +437,10 @@ class AdvancedLangchainQABot(mlflow.pyfunc.PythonModel):
 
                 # send request
                 try:
+                    print("We are requesting response Embeddings")
+                    print("PAYLOAD", payload)
                     response = requests.post(self.endpoint_url, headers=headers, json=payload)
+                    print()
                 except requests.exceptions.RequestException as e:
                     raise ValueError(f"Error raised by inference endpoint: {e}")
 
@@ -325,12 +457,12 @@ class AdvancedLangchainQABot(mlflow.pyfunc.PythonModel):
                         )
 
                     parsed_response = response.json()
-
+                    
                 except requests.exceptions.JSONDecodeError as e:
                     raise ValueError(
                         f"Error raised by inference API: {e}.\nResponse: {response.text}"
                     )
-
+                print("GETING ANSWER FROM EMBEDINGS")
                 return parsed_response
 
             def embed_documents(self, texts: List[str]) -> List[List[float]]:
@@ -342,8 +474,12 @@ class AdvancedLangchainQABot(mlflow.pyfunc.PythonModel):
                 Returns:
                     List of embeddings, one for each text.
                 """
-                embeddings = [self._embed(x)['predictions'][0] for x in texts]
-
+                print("TEXT1", texts)
+                try:
+                    embeddings = [self._embed(x)['predictions'][0] for x in texts]
+                except KeyError:
+                    print([self._embed(x) for x in texts])
+                print("TYPE EMBEDDINGS", type(embeddings))
                 return embeddings
 
             def embed_query(self, text: str) -> List[float]:
@@ -355,7 +491,10 @@ class AdvancedLangchainQABot(mlflow.pyfunc.PythonModel):
                 Returns:
                     Embeddings for the text.
                 """
+                print("TEXT", text)
                 embedding = self._embed(text)
+                print("Embeddings")
+                print("TYPE EMBEDDINGS", type(embedding['predictions']))
                 return embedding['predictions'][0]
             
         self.embeddings = ModelServingEndpointEmbeddings(db_api_token=self.token)
@@ -402,8 +541,7 @@ class AdvancedLangchainQABot(mlflow.pyfunc.PythonModel):
                           'params': kwargs}
 
                 response = requests.post(headers=header, url=self.endpoint_url, json=dataset)
-
-                return response.json()['predictions'][0]['candidates'][0]['text']
+                return str(response.json()['predictions']['candidates'][0])
 
             @property
             def _identifying_params(self) -> Mapping[str, Any]:
@@ -413,18 +551,7 @@ class AdvancedLangchainQABot(mlflow.pyfunc.PythonModel):
         llm_model = ServingEndpointLLM(endpoint_url=self.model_uri, token=self.token)
 
         self.llm_predictor = LLMPredictor(llm=llm_model)
-
-        # llama_debug = LlamaDebugHandler(print_trace_on_end=True)
-        # callback_manager = CallbackManager([llama_debug])
-
-        # service_context = ServiceContext.from_defaults(llm_predictor=llm_predictor, 
-                                            #    embed_model=embeddings,
-                                            #    callback_manager = callback_manager 
-                                            #    )
- 
-        # index = VectorStoreIndex.from_vector_store(
-        #     vector_store, service_context=service_context
-        # )
+        return self.llm_predictor
 
     def predict(self, context, data):
         llama_debug = LlamaDebugHandler(print_trace_on_end=True)
@@ -442,12 +569,37 @@ class AdvancedLangchainQABot(mlflow.pyfunc.PythonModel):
         query_engine = advanced_index.as_query_engine() 
  
         questions = data['prompt']
+        print(type(questions))
+       
         results = [query_engine.query(x).response for x in questions] 
         return results
 
 # COMMAND ----------
 
-model = AdvancedLangchainQABot(serving_uri, db_token, chroma_archive_folder)
+serving_uri
+
+# COMMAND ----------
+
+# We can setup some example questions for testing the chain as well
+test_questions = ['What are the basic components of a Transformer?',
+                  'What is a tokenizer?',
+                  'How can we handle audio?',
+                  'Are there alternatives to transformers?']
+
+testing_questions = pd.DataFrame(
+    test_questions, columns = ['prompt']
+)
+model = AdvancedLangchainQABot(serving_model_uri , db_token, chroma_archive_folder)
+context_load = model.load_context(None)
+model.predict(context_load, testing_questions)
+
+# COMMAND ----------
+
+
+
+# COMMAND ----------
+
+model = AdvancedLangchainQABot(serving_model_uri, db_token, chroma_archive_folder)
 
 # We can setup some example questions for testing the chain as well
 test_questions = ['What are the basic components of a Transformer?',
@@ -472,3 +624,13 @@ with mlflow.start_run() as run:
 
 
 # COMMAND ----------
+
+
+
+# COMMAND ----------
+
+
+
+# COMMAND ----------
+
+

@@ -8,22 +8,22 @@
 
 # COMMAND ----------
 
-%pip install -U pymupdf unstructured["local-inference"] sqlalchemy 'git+https://github.com/facebookresearch/detectron2.git' poppler-utils ctransformers scrapy llama_index==0.8.54 opencv-python
+# MAGIC %pip install -U pymupdf unstructured["local-inference"] sqlalchemy 'git+https://github.com/facebookresearch/detectron2.git' poppler-utils ctransformers scrapy llama_index==0.8.54 opencv-python
 
 # COMMAND ----------
 
 dbutils.library.restartPython()
 
 # COMMAND ----------
-# DBTITLE 1,Load Libs
 
+# DBTITLE 1,Load Libs
 from langchain.document_loaders import PyMuPDFLoader
 import os
 
 # COMMAND ----------
-# DBTITLE 1,Setup
 
-%run ./utils
+# DBTITLE 1,Setup
+# MAGIC %run ./utils
 
 # COMMAND ----------
 
@@ -37,6 +37,10 @@ sample_file_to_load = '/dbfs/bootcamp_data/pdf_data/2302.09419.pdf'
 # load a model for testing
 run_mode = 'serving'
 pipe = load_model(run_mode, dbfs_tmp_cache)
+
+# COMMAND ----------
+
+pipe("What is Spark?")
 
 # COMMAND ----------
 
@@ -114,6 +118,7 @@ pipe([prompt_template])
 # MAGIC ## Manually loading and parsing pdf
 
 # COMMAND ----------
+
 import fitz 
 
 doc = fitz.open(sample_file_to_load)
@@ -123,6 +128,7 @@ for page in doc:
   blocks = page_dict["blocks"]
   print(blocks)
   break
+
 # COMMAND ----------
 
 # MAGIC %md
@@ -141,6 +147,7 @@ print(len(page_dict['blocks']))
 print(page_dict['blocks'])
 
 # COMMAND ----------
+
 # Title
 page_dict['blocks'][0]
 
@@ -184,7 +191,7 @@ page_dict['blocks'][5]
 # MAGIC %md
 # MAGIC # Advanced Parsing of PDFs
 # MAGIC We can try newer more advanced parsers instead of manual coding
-
+# MAGIC
 # MAGIC Unstructured seems to show some promise
 # MAGIC - nltk is required and libs should be pre-installed
 # MAGIC - unstructured can also use things like detectron2 etc
@@ -242,10 +249,10 @@ browser_host = dbutils.notebook.entry_point.getDbutils().notebook().getContext()
 db_host = f"https://{browser_host}"
 db_token = dbutils.notebook.entry_point.getDbutils().notebook().getContext().apiToken().get()
 
-serving_uri = 'vicuna_13b'
+serving_uri = 'hf_inference_bootcamp_endpoint'
 serving_model_uri = f"{db_host}/serving-endpoints/{serving_uri}/invocations"
 
-embedding_uri = 'brian_embedding_endpoint'
+embedding_uri = 'hf_embedding_bootcamp_endpoint'
 embedding_model_uri = f"{db_host}/serving-endpoints/{embedding_uri}/invocations"
 
 llm_model = ServingEndpointLLM(endpoint_url=serving_model_uri, token=db_token)
@@ -292,4 +299,8 @@ unstructured_result = unstructured_query.query(question)
 # COMMAND ----------
 
 print(unstructured_result.response)
+
+
+# COMMAND ----------
+
 
