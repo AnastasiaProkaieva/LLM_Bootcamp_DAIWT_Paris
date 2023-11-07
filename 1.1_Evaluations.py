@@ -7,7 +7,7 @@
 
 # COMMAND ----------
 
-%pip install llama_index==0.8.54 spacy ragas==0.0.18
+# MAGIC %pip install llama_index==0.8.54 spacy ragas==0.0.18 mlflow==2.8.0
 
 # COMMAND ----------
 
@@ -97,7 +97,7 @@ set_global_service_context(service_context)
 # MAGIC %md
 # MAGIC # Load and Chunk Document
 # MAGIC We will load a sample doc to test on, firstly with a naive default chunking strategy
-# MAGIC
+
 # COMMAND ----------
 
 # chunk the output
@@ -132,6 +132,7 @@ print(reply.response)
 # MAGIC In order to run evaluation we need to have feasible questions to feed the model \
 # MAGIC It is time consuming to manually construct questions so we will use a LLM to do this \
 # MAGIC Note that this will have limitations, namely in the types of questions it will generate
+
 # COMMAND ----------
 
 from llama_index.evaluation import DatasetGenerator, RelevancyEvaluator
@@ -184,9 +185,8 @@ for question in eval_questions:
 
 # we will load it into a pandas frame: 
 response_df = pd.DataFrame(results)
+
 # COMMAND ----------
 
 # Let see what is in the frame
 response_df
-
-# COMMAND ----------

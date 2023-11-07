@@ -1,10 +1,11 @@
 # Databricks notebook source
 # MAGIC %md
-# MAGIC # Let us use our endpoings
+# MAGIC # Let us use our endpoints
 
 # COMMAND ----------
 
-%run ./endpoint_utils
+# MAGIC %run ./endpoint_utils
+
 # COMMAND ----------
 
 import requests

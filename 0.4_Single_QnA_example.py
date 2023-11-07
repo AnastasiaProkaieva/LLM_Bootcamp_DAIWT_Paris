@@ -5,8 +5,8 @@
 
 # COMMAND ----------
 
-# MAGIC # ctransformers==0.2.26
-# MAGIC %pip install pypdf sentence_transformers chromadb==0.4.15  llama_index==0.8.54
+# ctransformers==0.2.26
+%pip install pypdf sentence_transformers chromadb==0.4.15  llama_index==0.8.54 mlflow==2.8.0
 
 # COMMAND ----------
 
@@ -46,7 +46,7 @@ from transformers import pipeline
 # COMMAND ----------
 
 # can also set to gpu
-run_mode = 'serving' # 'gpu'
+run_mode = 'serving' # 'gpu' serving
 
 # COMMAND ----------
 
@@ -176,28 +176,117 @@ print(scores)
 
 # COMMAND ----------
 
-## One problem with the library at the moment is that GPU ram doesn't get relinquished when the object is overridden
-# The only way to clear GPU ram is to detach and reattach
-# This snippet will make sure we don't keep reloading the model and running out of GPU ram
-try:
-  llm_model
-except NameError:
-  if run_mode == 'serving':
+# ## One problem with the library at the moment is that GPU ram doesn't get relinquished when the object is overridden
+# # The only way to clear GPU ram is to detach and reattach
+# # This snippet will make sure we don't keep reloading the model and running out of GPU ram
+# run_mode == 'serving'
 
-    ## the Langchain Databricks LLM definition is currently not compatible with Optimised Serving
-    serving_uri = 'zephyr_7b'
-    browser_host = dbutils.notebook.entry_point.getDbutils().notebook().getContext().browserHostName().get()
-    db_host = f"https://{browser_host}"
-    model_uri = f"{db_host}/serving-endpoints/{serving_uri}/invocations"
-    db_token = dbutils.notebook.entry_point.getDbutils().notebook().getContext().apiToken().get()
+# if run_mode == 'serving':
 
-    llm_model = ServingEndpointLLM(endpoint_url=model_uri, token=db_token)
-  else:
-    pipe = load_model(run_mode, dbfs_tmp_cache, 'zephyr_7b')
-    llm_model = HuggingFacePipeline(pipeline=pipe)
+#   ## the Langchain Databricks LLM definition is currently not compatible with Optimised Serving
+#   browser_host = dbutils.notebook.entry_point.getDbutils().notebook().getContext().browserHostName().get()
+#   db_host = f"https://{browser_host}"
+#   model_uri = "https://e2-dogfood.staging.cloud.databricks.com/serving-endpoints/hf_inference_bootcamp_endpoint/invocations"
+#   #f"{db_host}/serving-endpoints/{serving_uri}/invocations"
+#   db_token = dbutils.notebook.entry_point.getDbutils().notebook().getContext().apiToken().get()
 
-else:
-  pass
+#   llm_model = ServingEndpointLLM(endpoint_url=model_uri, token=db_token)
+
+# else:
+#   pipe = load_model(run_mode, dbfs_tmp_cache, 'zephyr_7b')
+#   llm_model = HuggingFacePipeline(pipeline=pipe)
+
+
+# COMMAND ----------
+
+# # currently the langchain integration is broken
+# from typing import Any, List, Mapping, Optional
+
+# from langchain.callbacks.manager import CallbackManagerForLLMRun
+# from langchain.prompts.chat import ChatPromptTemplate
+# from langchain.llms.base import LLM
+# from langchain.schema.messages import HumanMessage
+# import requests
+
+# # TODO setup generation config properly?
+# class ServingEndpointLLM(LLM):
+#     endpoint_url: str
+#     token: str
+#     temperature: float = 0.1
+#     max_length: int = 256
+
+#     @property
+#     def _llm_type(self) -> str:
+#         return "custom"
+
+#     def _call(
+#         self,
+#         prompt: str,
+#         stop: Optional[List[str]] = None,
+#         run_manager: Optional[CallbackManagerForLLMRun] = None,
+#         **kwargs: Any,
+#     ) -> str:
+#         if stop is not None:
+#             #raise ValueError("stop kwargs are not permitted.")
+#             pass
+
+#         header = {"Context-Type": "text/json", "Authorization": f"Bearer {self.token}"}
+
+#         if type(prompt) is str:
+#             dataset = {'inputs': {'prompt': [prompt]},
+#                   'params': {**{'max_tokens': self.max_length}, **kwargs}}
+#         elif type(prompt) is ChatPromptTemplate:
+#             text_prompt = prompt.format()
+#             dataset = {'inputs': {'prompt': [text_prompt]},
+#                   'params': {**{'max_tokens': self.max_length}, **kwargs}} 
+#         #print(dataset)
+#         try:
+#             response = requests.post(headers=header, url=self.endpoint_url, json=dataset)
+
+#             try:
+#                 #print(response.json()) # works
+#                 #return response.json()['predictions'][0]['candidates'][0]['text']
+#                 return str(response.json()['predictions']['candidates'][0])
+            
+#             except KeyError:
+#                 #print(response)
+#                 return str(response.json())
+
+        
+#         except TypeError:
+#           print(dataset)
+
+#     @property
+#     def _identifying_params(self) -> Mapping[str, Any]:
+#         """Get the identifying parameters."""
+#         return {"endpoint_url": self.endpoint_url}  
+
+# COMMAND ----------
+
+# the Langchain Databricks LLM definition is currently not compatible with Optimised Serving
+db_host = f"https://{browser_host}"
+model_uri = "https://e2-dogfood.staging.cloud.databricks.com/serving-endpoints/hf_inference_bootcamp_endpoint/invocations"
+db_token = dbutils.notebook.entry_point.getDbutils().notebook().getContext().apiToken().get()
+
+# COMMAND ----------
+
+input_example = pd.DataFrame(
+    {
+        "prompt": ["What is ML?", "What is large language model?"],
+        "temperature": [0.1, 0.5],
+        "max_new_tokens": [100, 100],
+    }
+)
+
+answer_instruct = score_model(input_example, model_uri, db_token)
+print(answer_instruct)
+
+# COMMAND ----------
+
+model_uri = 'https://e2-dogfood.staging.cloud.databricks.com/serving-endpoints/hf_inference_bootcamp_endpoint/invocations'
+llm_model = ServingEndpointLLM(endpoint_url=model_uri, token=db_token)
+
+llm_model.predict("What is ML?")
 
 # COMMAND ----------
 
@@ -210,7 +299,7 @@ else:
 # MAGIC
 # MAGIC We can see the prompt that it uses here:
 # MAGIC - https://github.com/hwchase17/langchain/tree/master/libs/langchain/langchain/chains/retrieval_qa
-
+# MAGIC
 
 # COMMAND ----------
 
@@ -248,6 +337,7 @@ print(result)
 # MAGIC There are a few different things that we can to fix this.
 # MAGIC First, langchain defaults to prompts tuned on OpenAI ChatGPT by default  
 # MAGIC But newer models like we are using now run fine
+
 # COMMAND ----------
 
 from langchain import PromptTemplate
@@ -301,6 +391,7 @@ print(result)
 # MAGIC All this of course can be explored only in the source code.
 # MAGIC
 # MAGIC We should also review results from our Chroma search. 
+
 # COMMAND ----------
 
 docsearch.similarity_search(query)
@@ -313,10 +404,12 @@ docsearch.similarity_search(query)
 # MAGIC It means that we need to look into chunking strategy and filtering methods
 # MAGIC We know that the document is about large language models
 # MAGIC Lets adjust the query so that we can "trigger" those keywords and embeddings.
+
 # COMMAND ----------
 
 query = 'What is text summurisation? How can it be useful?'
 docsearch.similarity_search(query)
+
 # COMMAND ----------
 
 # Test Query 2
@@ -437,7 +530,8 @@ class LangchainQABot(mlflow.pyfunc.PythonModel):
 
                 response = requests.post(headers=header, url=self.endpoint_url, json=dataset)
 
-                return response.json()['predictions'][0]['candidates'][0]['text']
+                #return response.json()['predictions'][0]['candidates'][0]['text']
+                return str(response.json()['predictions']['candidates'][0])
 
             @property
             def _identifying_params(self) -> Mapping[str, Any]:
@@ -457,6 +551,10 @@ class LangchainQABot(mlflow.pyfunc.PythonModel):
 
 # COMMAND ----------
 
+
+
+# COMMAND ----------
+
 model = LangchainQABot(model_uri, db_token, system_template, chroma_archive_folder)
 
 with mlflow.start_run() as run:
@@ -472,3 +570,5 @@ with mlflow.start_run() as run:
                   model_type="text")
 
 # COMMAND ----------
+
+

@@ -9,7 +9,7 @@
 
 # DBTITLE 1,Library Setup
 #%pip install ctransformers==0.2.26
-%pip install mlflow==2.8.0 llama_index==0.8.54
+%pip install mlflow==2.8.0 llama_index==0.8.54 mlflow==2.8.0
 
 # COMMAND ----------
 

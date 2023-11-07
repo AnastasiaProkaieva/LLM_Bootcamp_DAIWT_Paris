@@ -6,6 +6,11 @@
 
 # COMMAND ----------
 
+# MAGIC %md 
+# MAGIC ## Settings to set up 
+
+# COMMAND ----------
+
 # setup env
 # TODO - adjust and use bootcamp ones later
 import os
@@ -40,6 +45,15 @@ os.environ['PERSIST_DIR'] = linux_vector_store_directory
 # COMMAND ----------
 
 bootcamp_dbfs_model_folder = '/dbfs/bootcamp_data/hf_cache/downloads'
+
+# COMMAND ----------
+
+
+
+# COMMAND ----------
+
+# MAGIC %md 
+# MAGIC ## Functions to set up 
 
 # COMMAND ----------
 
@@ -163,6 +177,28 @@ def select_proper_set(prompt, run_mode, max_new_tokens=100, max_tokens=100):
 
 # COMMAND ----------
 
+
+import os
+import requests
+import numpy as np
+import pandas as pd
+import json
+
+def create_tf_serving_json(data):
+  return {'inputs': {name: data[name].tolist() for name in data.keys()} if isinstance(data, dict) else data.tolist()}
+
+def score_model(dataset, model_uri, db_token):
+  url = model_uri
+  headers = {'Authorization': f'Bearer {db_token}', 'Content-Type': 'application/json'}
+  ds_dict = {'dataframe_split': dataset.to_dict(orient='split')} if isinstance(dataset, pd.DataFrame) else create_tf_serving_json(dataset)
+  data_json = json.dumps(ds_dict, allow_nan=True)
+  response = requests.request(method='POST', headers=headers, url=url, data=data_json)
+  if response.status_code != 200:
+    raise Exception(f'Request failed with status {response.status_code}, {response.text}')
+  return response.json()
+
+# COMMAND ----------
+
 # currently the langchain integration is broken
 from typing import Any, List, Mapping, Optional
 
@@ -208,8 +244,9 @@ class ServingEndpointLLM(LLM):
             response = requests.post(headers=header, url=self.endpoint_url, json=dataset)
 
             try:
-                print(response.json())
-                return response.json()['predictions'][0]['candidates'][0]['text']
+                #print(response.json())
+                #return response.json()['predictions'][0]['candidates'][0]['text']
+                return str(response.json()['predictions']['candidates'][0])
             
             except KeyError:
                 print(response)
