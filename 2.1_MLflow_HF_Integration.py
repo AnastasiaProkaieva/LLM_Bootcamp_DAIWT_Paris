@@ -71,7 +71,7 @@ experiment_name = f'/Users/{username}/llama_7b_inference'
 run_name = "llama2_7b_opt_bootcamp"
 # UC Catalog Settings
 use_uc = True
-catalog = 'ap'
+catalog = 'daiwt'
 db = 'llm'
 uc_model_name = f'{run_name}_inference_model'
 artifact_path = "transformers_pipeline"

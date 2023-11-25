@@ -9,7 +9,7 @@
 
 # DBTITLE 1,Library Setup
 #%pip install ctransformers==0.2.26
-%pip install mlflow==2.8.0 llama_index==0.8.54 mlflow==2.8.0
+%pip install mlflow==2.8.0 llama_index==0.8.54
 
 # COMMAND ----------
 
@@ -17,7 +17,7 @@ dbutils.library.restartPython()
 
 # COMMAND ----------
 
-run_mode = 'gpu' # or gpu or cpu or serving
+run_mode = 'serving' # or gpu or cpu or serving
 
 # COMMAND ----------
 
@@ -26,7 +26,37 @@ run_mode = 'gpu' # or gpu or cpu or serving
 
 # COMMAND ----------
 
-pipe = load_model(run_mode, dbfs_tmp_cache, 'zephyr_7b')
+# MAGIC %md 
+# MAGIC Payload example to paly with the UI 
+# MAGIC
+# MAGIC ```
+# MAGIC
+# MAGIC {
+# MAGIC   "dataframe_split": {
+# MAGIC     "columns": [
+# MAGIC       "prompt",
+# MAGIC       "temperature",
+# MAGIC       "max_new_tokens"
+# MAGIC     ],
+# MAGIC     "data": [
+# MAGIC       [
+# MAGIC         "what is ML?",
+# MAGIC         0.5,
+# MAGIC         100
+# MAGIC       ]
+# MAGIC     ]
+# MAGIC   }
+# MAGIC }
+# MAGIC
+# MAGIC ```
+
+# COMMAND ----------
+
+pipe = load_model(run_mode, dbfs_tmp_cache) #, 'zephyr_7b'
+
+# COMMAND ----------
+
+
 
 # COMMAND ----------
 

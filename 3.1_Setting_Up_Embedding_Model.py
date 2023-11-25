@@ -4,7 +4,7 @@
 
 # COMMAND ----------
 
-# MAGIC %pip install -U mlflow==2.7.1 
+# MAGIC %pip install -U mlflow==2.8.0 
 
 # COMMAND ----------
 
@@ -19,7 +19,7 @@ model_name='sentence-transformers/all-mpnet-base-v2'
 
 # UC Catalog Settings
 use_uc = True
-catalog = 'ap' # PLACE HERE YOUR CATALOG NAME 
+catalog = 'daiwt' # PLACE HERE YOUR CATALOG NAME 
 db = 'llm' # PLACE HERE YOUR SCHEMA NAME 
 uc_model_name = 'hf_embedding_model_bootcamp'
 
@@ -70,7 +70,7 @@ else:
 embedding_model = SentenceTransformer(model_name)
 
 # Lets create a signature example
-example_sentences = ["welcome to sentence transformers", 
+example_sentences = ["Welcome to sentence transformers", 
                     "This model is for embedding sentences"]
 
 embedding_signature = mlflow.models.infer_signature(
@@ -87,10 +87,6 @@ with mlflow.start_run(run_name=run_name) as run:
 
 # COMMAND ----------
 
-
-
-# COMMAND ----------
-
 # DBTITLE 1,Register Model
 from mlflow import MlflowClient
 client = mlflow.MlflowClient()
@@ -101,6 +97,10 @@ latest_model = mlflow.register_model(f'runs:/{run.info.run_id}/{artifact_path}',
 client.set_registered_model_alias(name=register_name, 
                                   alias="prod", 
                                   version=latest_model.version)
+
+# COMMAND ----------
+
+
 
 # COMMAND ----------
 

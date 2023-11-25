@@ -230,7 +230,7 @@ mlflow.set_registry_uri("databricks-uc")
 
 # Register model to Unity Catalog
 
-registered_name = "ap.llm.mistral_7b_chat_completion"  # Note that the UC model name follows the pattern <catalog_name>.<schema_name>.<model_name>, corresponding to the catalog, schema, and registered model name
+registered_name = "daiwt.llm.mistral_7b_chat_completion"  # Note that the UC model name follows the pattern <catalog_name>.<schema_name>.<model_name>, corresponding to the catalog, schema, and registered model name
 
 
 result = mlflow.register_model(
@@ -259,7 +259,7 @@ client.set_registered_model_alias(
 import mlflow
 import pandas as pd
 
-registered_name = "ap.llm.mistral_7b_chat_completion"
+registered_name = "daiwt.llm.mistral_7b_chat_completion"
 loaded_model = mlflow.pyfunc.load_model(f"models:/{registered_name}@Champion")
 
 # Make a prediction using the loaded model

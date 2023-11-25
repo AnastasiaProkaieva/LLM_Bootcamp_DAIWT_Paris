@@ -158,7 +158,7 @@ mlflow.set_registry_uri("databricks-uc")
 # Register model to Unity Catalog
 # This may take 1.1 minutes to complete
 
-registered_name = "ap.llm.bootcamp_mistral7b_instruct" # Note that the UC model name follows the pattern <catalog_name>.<schema_name>.<model_name>, corresponding to the catalog, schema, and registered model name
+registered_name = "daiwt.llm.bootcamp_mistral7b_instruct" # Note that the UC model name follows the pattern <catalog_name>.<schema_name>.<model_name>, corresponding to the catalog, schema, and registered model name
 
 
 result = mlflow.register_model(

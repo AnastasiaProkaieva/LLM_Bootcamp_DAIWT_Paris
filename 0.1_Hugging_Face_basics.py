@@ -29,10 +29,6 @@ dbutils.library.restartPython()
 
 # COMMAND ----------
 
-
-
-# COMMAND ----------
-
 # MAGIC %md
 # MAGIC ## Setup 🚀
 
@@ -52,7 +48,7 @@ dbutils.library.restartPython()
 
 #for classroom
 #dbfs_tmp_cache = '/dbfs/bootcamp_data/hf_cache/'
-run_mode = 'gpu' # make a widget here 
+run_mode = 'gpu'
 
 # COMMAND ----------
 
