@@ -247,7 +247,7 @@ from llama_index.callbacks import CallbackManager, LlamaDebugHandler, CBEventTyp
 # Using Databricks Model Serving
 browser_host = dbutils.notebook.entry_point.getDbutils().notebook().getContext().browserHostName().get()
 db_host = f"https://{browser_host}"
-db_token = dbutils.notebook.entry_point.getDbutils().notebook().getContext().apiToken().get()
+db_token = dbutils.secrets.get(scope="daiwt_bootcamp", key="serving_api")
 
 serving_uri = 'hf_inference_bootcamp_endpoint'
 serving_model_uri = f"{db_host}/serving-endpoints/{serving_uri}/invocations"

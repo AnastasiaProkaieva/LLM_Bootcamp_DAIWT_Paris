@@ -11,8 +11,9 @@
 # MAGIC See: https://docs.arize.com/phoenix/
 
 # COMMAND ----------
-# MAGIC # "arize-phoenix[experimental]"  pandas==1.5.3
-# MAGIC %pip install -U llama_index==0.8.54 faiss-cpu datashader bokeh holoviews scikit-image colorcet "arize-phoenix[experimental]"
+
+# "arize-phoenix[experimental]"  pandas==1.5.3
+%pip install -U llama_index==0.8.54 faiss-cpu datashader bokeh holoviews scikit-image colorcet "arize-phoenix[experimental]"
 
 # COMMAND ----------
 
@@ -47,6 +48,7 @@ test_pdf
 # MAGIC
 # MAGIC Lets explore how data embeds a bit more in order to see how we can improve retrieval \
 # MAGIC We will use a model deployed on Databricks Model Serving
+
 # COMMAND ----------
 
 # DBTITLE 1,Setup some embedding algorithms
@@ -181,11 +183,13 @@ hover_data =  pd.DataFrame({'index': np.arange(len(example_sentences)) ,
 # COMMAND ----------
 
 plot.output_notebook()
+
 # COMMAND ----------
 
 # MAGIC %md
 # MAGIC We can now visualise the data, note that we don't have a lot of datapoints \
 # MAGIC so there aren't any obvious patterns in these but as you add more points patterns should appear
+
 # COMMAND ----------
 
 # hover_data=hover_data,
@@ -237,7 +241,7 @@ set_global_service_context(service_context)
 # MAGIC %md
 # MAGIC ## Load and Chunk Document
 # MAGIC We will load a sample doc to test on, firstly with a naive default chunking strategy
-# MAGIC
+
 # COMMAND ----------
 
 # DBTITLE 1,Create Index
@@ -338,6 +342,7 @@ dataset_df = pd.DataFrame(
             "text_vector": document_embeddings,
         }
     )
+
 # COMMAND ----------
 
 # create the query frame
@@ -377,5 +382,3 @@ query_ds = px.Dataset.from_open_inference(sample_query_df)
 # COMMAND ----------
 
 session = px.launch_app(primary=query_ds, corpus=database_ds, host='0.0.0.0', port='10101')
-
-# COMMAND ----------
