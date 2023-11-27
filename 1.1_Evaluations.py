@@ -96,7 +96,7 @@ class ModelServingEndpointEmbeddings(BaseModel, Embeddings):
     """
 
     endpoint_url: str = (
-        "https://e2-dogfood.staging.cloud.databricks.com/serving-endpoints/hf_embedding_bootcamp_endpoint/invocations"
+        "https://dbc-a234f055-bf09.cloud.databricks.com/serving-endpoints/hf_embedding_bootcamp_endpoint/invocations"
     )
     """Endpoint URL to use."""
     embed_instruction: str = "Represent the document for retrieval: "
