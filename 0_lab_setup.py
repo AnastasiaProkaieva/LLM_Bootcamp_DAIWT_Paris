@@ -26,7 +26,7 @@ import requests
 
 # DBTITLE 1,Config Params
 # We will setup a folder to store the files
-user_agent = "paris_ap"
+user_agent = "daiwt_ap"
 
 reset_home = False 
 
@@ -135,10 +135,10 @@ import huggingface_hub
 # huggingface_hub.notebook_login()
 
 # use this if you have a hf key saved in secrets
-#huggingface_key = dbutils.secrets.get(scope='bootcamp_training', key='hf-key')
-huggingface_key = dbutils.secrets.get(scope='bootcamp_paris', key='HF_TOKEN')
+huggingface_key = dbutils.secrets.get(scope='daiwt_bootcamp', key='HF_TOKEN')
 # for serving teh key is serving_key
-huggingface_hub.login(token=huggingface_key)
+# huggingface_key
+huggingface_hub.login(token=huggingface_key) #
 
 # COMMAND ----------
 
@@ -151,8 +151,8 @@ repo_list = {'llama_2_gpu': 'meta-llama/Llama-2-7b-chat-hf',
              'llama_2_7b' : 'meta-llama/Llama-2-7b',
              'llama_2_13b': 'meta-llama/Llama-2-13b-chat-hf',
              'llama_2_13b_awq': 'TheBloke/Llama-2-13B-chat-AWQ',
-             'vicuna_1.5_13b': 'lmsys/vicuna-13b-v1.5',
-             'vicuna_1.5_13b_awq': 'TheBloke/vicuna-13B-v1.5-16K-AWQ',
+             #'vicuna_1.5_13b': 'lmsys/vicuna-13b-v1.5',
+             #'vicuna_1.5_13b_awq': 'TheBloke/vicuna-13B-v1.5-16K-AWQ',
              'mistral_7b_instruct': 'mistralai/Mistral-7B-Instruct-v0.1',
              'mistral_7b': 'mistralai/Mistral-7B-v0.1',
              'zephyr_7b': 'HuggingFaceH4/zephyr-7b-beta'} #,

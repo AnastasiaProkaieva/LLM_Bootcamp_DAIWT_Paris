@@ -128,9 +128,8 @@ def load_model(run_mode: str, dbfs_cache_dir: str, serving_uri :str='llama_2_13b
         
         browser_host = dbutils.notebook.entry_point.getDbutils().notebook().getContext().browserHostName().get()
         db_host = f"https://{browser_host}"
-        #model_uri = "https://dbc-a234f055-bf09.cloud.databricks.com/serving-endpoints/hf_inference_bootcamp_endpoint/invocations"
         model_uri = "https://dbc-a234f055-bf09.cloud.databricks.com/serving-endpoints/hf_inference_bootcamp_endpoint_prompt/invocations"
-        db_token = dbutils.notebook.entry_point.getDbutils().notebook().getContext().apiToken().get()
+        db_token = dbutils.secrets.get(scope="daiwt_bootcamp", key="serving_api")
 
         test_pipe = QueryEndpoint(model_uri, db_token)
 
